@@ -4,6 +4,8 @@ import "./styles.css";
 // import Weather from "./Weather";
 import WeatherCard from "./components/WeatherCard";
 import Header from "./components/Header";
+import Forecast from './components/Forecast';
+import { Loader } from "semantic-ui-react";
 
 const URL = "https://api.openweathermap.org/data/2.5/onecall";
 const API_KEY = "d586de666e3f77e79c5e01063ae47055";
@@ -16,11 +18,15 @@ export default function App() {
   const [humidity, setHumidity] = useState(null);
   const [sunrise, setSunrise] = useState(null);
   const [sunset, setSunset] = useState(null);
+  const [icon, setIcon] = useState('');
+  const [forecast, setForecast] = useState([]);
+  const [loading, setloading] = useState(true);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(function (position) {
       setLatitude(position.coords.latitude);
       setLongitude(position.coords.longitude);
+
     });
 
     axios
@@ -28,7 +34,15 @@ export default function App() {
         `${URL}?lat=33.44&lon=-94.04&exclude=hourly,minutely&appid=${API_KEY}`
       )
       .then((weatherData) => {
-        console.log(weatherData.data.current.temp);
+        setloading(false);
+        console.log(weatherData.data);
+        setTempature(weatherData.data.current.temp);
+        setSunrise(weatherData.data.current.sunrise);
+        setSunset(weatherData.data.current.sunset);
+        setHumidity(weatherData.data.current.humidity);
+        setCity(weatherData.data.timezone);
+        setIcon(weatherData.data.current.weather[0].main);
+        setForecast(weatherData.data.daily)
       });
   }, []);
 
@@ -54,7 +68,20 @@ export default function App() {
   return (
     <div className="App">
       <Header />
-      <WeatherCard tempature={tempature} />
+      {loading ? (
+        <><p>Loading Please wait</p><Loader active inline='centered' /></>
+      ) : (
+
+        <WeatherCard
+          tempature={tempature}
+          humidity={humidity}
+          sunset={sunset}
+          sunrise={sunrise}
+          city={city}
+          icon={icon}
+        />
+      )}
+      <Forecast forecast={forecast} />
     </div>
   );
 }
